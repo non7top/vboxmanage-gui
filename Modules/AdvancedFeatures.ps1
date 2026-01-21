@@ -122,6 +122,7 @@ function Initialize-AdvancedTab {
             # Convert plain text password to SecureString
             # Note: This is a limitation of the GUI approach - we need to temporarily store the password
             # as plain text to convert it to SecureString for the Protect-VBoxDiskImage function
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')]
             $securePassword = ConvertTo-SecureString $encPasswordTextBox.Text -AsPlainText -Force
 
             try {
