@@ -131,10 +131,33 @@ if ($missingGUIComponents.Count -eq 0) {
     Write-Warning "  Missing GUI components: $($missingGUIComponents -join ', ')"
 }
 
+# Test 6: Check specific GUI functions
+Write-Verbose "Test 6: Checking specific GUI functions..."
+
+$expectedGUIFunctions = @(
+    "Get-DiskImage"
+)
+
+$missingGUIFunctions = @()
+foreach ($func in $expectedGUIFunctions) {
+    if (Get-Command $func -ErrorAction SilentlyContinue) {
+        Write-Verbose "  ✓ GUI function $func exists"
+    } else {
+        Write-Warning "  ✗ GUI function $func missing"
+        $missingGUIFunctions += $func
+    }
+}
+
+if ($missingGUIFunctions.Count -eq 0) {
+    Write-Verbose "  All expected GUI functions are defined"
+} else {
+    Write-Warning "  Missing GUI functions: $($missingGUIFunctions -join ', ')"
+}
+
 # Summary
 Write-Output "Test Summary:"
 Write-Output "============="
-if ($allFilesExist -and $missingFunctions.Count -eq 0 -and $missingGUIComponents.Count -eq 0) {
+if ($allFilesExist -and $missingFunctions.Count -eq 0 -and $missingGUIComponents.Count -eq 0 -and $missingGUIFunctions.Count -eq 0) {
     Write-Output "Application structure: COMPLETE"
     Write-Output "All components are properly implemented!"
     Write-Output "To run the application, execute: .\VirtualBoxGUI.ps1"

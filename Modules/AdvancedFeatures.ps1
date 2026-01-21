@@ -120,6 +120,8 @@ function Initialize-AdvancedTab {
         if ([System.Windows.Forms.MessageBox]::Show("Encrypt disk image? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
             # Convert plain text password to SecureString
+            # Note: This is a limitation of the GUI approach - we need to temporarily store the password
+            # as plain text to convert it to SecureString for the Protect-VBoxDiskImage function
             $securePassword = ConvertTo-SecureString $encPasswordTextBox.Text -AsPlainText -Force
 
             try {

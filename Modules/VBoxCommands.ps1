@@ -130,6 +130,7 @@ function Resize-VBoxDiskImage {
 }
 
 function New-VBoxDiskImage {
+    [CmdletBinding(SupportsShouldProcess=$true)]
     param(
         [string]$Path,
         [string]$Format,
@@ -137,7 +138,10 @@ function New-VBoxDiskImage {
     )
 
     $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
-    return Invoke-VBoxCommand $arguments
+
+    if ($PSCmdlet.ShouldProcess("Disk image at $Path", "Create")) {
+        return Invoke-VBoxCommand $arguments
+    }
 }
 
 function Optimize-VBoxDiskImage {

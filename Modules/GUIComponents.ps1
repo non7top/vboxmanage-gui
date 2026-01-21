@@ -275,7 +275,7 @@ function Initialize-ManageTab {
     $TabPage.Controls.Add($statusLabel)
 
     # Load disk images function
-    function Load-DiskImage {
+    function Get-DiskImage {
         $dataGridView.Rows.Clear()
         $disks = Get-VBoxDiskImage
 
@@ -294,7 +294,7 @@ function Initialize-ManageTab {
 
     # Event handlers
     $refreshButton.Add_Click({
-        Load-DiskImage
+        Get-DiskImage
     })
 
     $dataGridView.Add_SelectionChanged({
@@ -318,7 +318,7 @@ function Initialize-ManageTab {
                     $result = Optimize-VBoxDiskImage -ImagePath $imagePath
                     if ($result.ExitCode -eq 0) {
                         [System.Windows.Forms.MessageBox]::Show("Disk image compacted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-                        Load-DiskImage  # Refresh the list
+                        Get-DiskImage  # Refresh the list
                     } else {
                         [System.Windows.Forms.MessageBox]::Show("Compaction failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
@@ -373,7 +373,7 @@ function Initialize-ManageTab {
                     $result = Resize-VBoxDiskImage -ImagePath $imagePath -SizeMB $newSize
                     if ($result.ExitCode -eq 0) {
                         [System.Windows.Forms.MessageBox]::Show("Disk image resized successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-                        Load-DiskImage  # Refresh the list
+                        Get-DiskImage  # Refresh the list
                     } else {
                         [System.Windows.Forms.MessageBox]::Show("Resize failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
