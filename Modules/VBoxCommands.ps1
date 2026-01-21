@@ -228,6 +228,7 @@ function Protect-VBoxDiskImage {
     }
 }
 
+
 function Unlock-VBoxDiskImage {
     param(
         [string]$ImagePath,

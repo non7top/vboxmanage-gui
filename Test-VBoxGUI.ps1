@@ -85,7 +85,8 @@ $expectedFunctions = @(
     "Get-VBoxSupportedFormat",
     "Repair-VBoxImage",
     "Protect-VBoxDiskImage",
-    "Unlock-VBoxDiskImage"
+    "Unlock-VBoxDiskImage",
+    "Convert-PlainTextToSecureString"
 )
 
 $missingFunctions = @()

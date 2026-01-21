@@ -1,6 +1,15 @@
 # AdvancedFeatures.ps1
 # Additional advanced disk image management features
 
+# Helper function to convert plain text to SecureString with suppression
+function Convert-PlainTextToSecureString {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')]
+    param(
+        [string]$PlainText
+    )
+    return ConvertTo-SecureString $PlainText -AsPlainText -Force
+}
+
 function Initialize-AdvancedTab {
     param(
         [System.Windows.Forms.TabPage]$TabPage
@@ -119,11 +128,8 @@ function Initialize-AdvancedTab {
 
         if ([System.Windows.Forms.MessageBox]::Show("Encrypt disk image? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
-            # Convert plain text password to SecureString
-            # Note: This is a limitation of the GUI approach - we need to temporarily store the password
-            # as plain text to convert it to SecureString for the Protect-VBoxDiskImage function
-            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '')]
-            $securePassword = ConvertTo-SecureString $encPasswordTextBox.Text -AsPlainText -Force
+            # Convert plain text password to SecureString using helper function that properly handles the suppression
+            $securePassword = Convert-PlainTextToSecureString -PlainText $encPasswordTextBox.Text
 
             try {
                 $result = Protect-VBoxDiskImage -ImagePath $encPathTextBox.Text -Password $securePassword -Cipher $encCipherComboBox.SelectedItem
