@@ -14,43 +14,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup PowerShell
-      uses: dcarbone/install-powershell-action@v1.0.0
-
-    - name: Find PowerShell scripts
-      id: find-scripts
+    - name: Find and check PowerShell scripts
+      shell: pwsh
       run: |
-        echo "Finding PowerShell scripts in the repository..."
-        scripts=$(find . -name "*.ps1" -not -path "./.github/*" | head -20)
-        echo "scripts<<EOF" >> $GITHUB_OUTPUT
-        echo "$scripts" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        Write-Host "Finding PowerShell scripts in the repository..."
+        $scripts = Get-ChildItem -Path . -Recurse -Include "*.ps1" | Where-Object { $_.FullName -notlike "*\.github*" }
 
-    - name: Check PowerShell syntax
-      run: |
-        set -e
-        while IFS= read -r script; do
-          if [[ -n "$script" ]]; then
-            echo "Checking syntax for: $script"
-            pwsh -Command "Test-Path -Path '$script' -PathType Leaf" 2>/dev/null || { echo "File does not exist: $script"; exit 1; }
-            pwsh -Command "& {
-              try {
-                $contents = Get-Content -Path '$script' -Raw
-                $errors = @()
-                $null = [System.Management.Automation.PSParser]::Tokenize($contents, [ref]$errors)
-                if ($errors.Count -gt 0) {
-                  Write-Host 'Syntax errors found in $script:'
-                  foreach ($error in $errors) {
-                    Write-Host \"Line $($error.StartLine): $(\$error.Message)\"
-                  }
-                  exit 1
-                } else {
-                  Write-Host 'No syntax errors found in $script'
-                }
-              } catch {
-                Write-Host \"Error parsing $script : $($_.Exception.Message)\"
-                exit 1
+        foreach ($script in $scripts) {
+          if (Test-Path $script.FullName) {
+            Write-Host "Checking syntax for: $($script.FullName)"
+            $content = Get-Content -Path $script.FullName -Raw
+            $errors = $null
+            $tokens = [System.Management.Automation.PSParser]::Tokenize($content, [ref]$errors)
+
+            if ($errors.Count -gt 0) {
+              Write-Host "Syntax errors found in $($script.FullName):"
+              foreach ($error in $errors) {
+                Write-Host "Line $($error.StartLine): $($error.Message)"
               }
-            }"
-          fi
-        done <<< "$(echo "${{ steps.find-scripts.outputs.scripts }}" | tr '\n' '\0' | xargs -0 -n 1)"
+              exit 1
+            } else {
+              Write-Host "No syntax errors found in $($script.FullName)"
+            }
+          }
+        }
