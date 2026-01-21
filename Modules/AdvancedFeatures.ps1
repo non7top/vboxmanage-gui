@@ -111,17 +111,30 @@ function Initialize-AdvancedTab {
     $infoRichTextBox.Font = New-Object System.Drawing.Font("Consolas", 8)
     $infoGroupBox.Controls.Add($infoRichTextBox)
 
+    # Store controls in a hashtable to pass to event handlers
+    $controls = @{
+        EncPathTextBox = $encPathTextBox
+        EncPasswordTextBox = $encPasswordTextBox
+        EncCipherComboBox = $encCipherComboBox
+        InfoPathTextBox = $infoPathTextBox
+        InfoRichTextBox = $infoRichTextBox
+    }
+
     # Event handlers for encryption
     $encPathButton.Add_Click({
+        param($sender, $eventArgs)
+
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $encPathTextBox.Text = $openFileDialog.FileName
+            $controls.EncPathTextBox.Text = $openFileDialog.FileName
         }
     })
 
     $encryptButton.Add_Click({
-        if ([string]::IsNullOrEmpty($encPathTextBox.Text) -or [string]::IsNullOrEmpty($encPasswordTextBox.Text)) {
+        param($sender, $eventArgs)
+
+        if ([string]::IsNullOrEmpty($controls.EncPathTextBox.Text) -or [string]::IsNullOrEmpty($controls.EncPasswordTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path and password.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
@@ -129,10 +142,10 @@ function Initialize-AdvancedTab {
         if ([System.Windows.Forms.MessageBox]::Show("Encrypt disk image? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
             # Convert plain text password to SecureString using helper function that properly handles the suppression
-            $securePassword = Convert-PlainTextToSecureString -PlainText $encPasswordTextBox.Text
+            $securePassword = Convert-PlainTextToSecureString -PlainText $controls.EncPasswordTextBox.Text
 
             try {
-                $result = Protect-VBoxDiskImage -ImagePath $encPathTextBox.Text -Password $securePassword -Cipher $encCipherComboBox.SelectedItem
+                $result = Protect-VBoxDiskImage -ImagePath $controls.EncPathTextBox.Text -Password $securePassword -Cipher $controls.EncCipherComboBox.SelectedItem
                 if ($result.ExitCode -eq 0) {
                     [System.Windows.Forms.MessageBox]::Show("Disk image encrypted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                 } else {
@@ -146,23 +159,27 @@ function Initialize-AdvancedTab {
 
     # Event handlers for disk info
     $infoPathButton.Add_Click({
+        param($sender, $eventArgs)
+
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $infoPathTextBox.Text = $openFileDialog.FileName
+            $controls.InfoPathTextBox.Text = $openFileDialog.FileName
         }
     })
 
     $getInfoButton.Add_Click({
-        if ([string]::IsNullOrEmpty($infoPathTextBox.Text)) {
+        param($sender, $eventArgs)
+
+        if ([string]::IsNullOrEmpty($controls.InfoPathTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
 
         try {
-            $result = Get-VBoxInfo -ImagePath $infoPathTextBox.Text
+            $result = Get-VBoxInfo -ImagePath $controls.InfoPathTextBox.Text
             if ($result.ExitCode -eq 0) {
-                $infoRichTextBox.Text = $result.Output
+                $controls.InfoRichTextBox.Text = $result.Output
             } else {
                 [System.Windows.Forms.MessageBox]::Show("Failed to get disk info: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }

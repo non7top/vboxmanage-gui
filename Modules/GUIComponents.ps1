@@ -138,86 +138,105 @@ function Initialize-ConvertTab {
     $statusLabel.AutoSize = $true
     $TabPage.Controls.Add($statusLabel)
 
+    # Store controls in a hashtable to pass to event handlers
+    $controls = @{
+        SourceTextBox = $sourceTextBox
+        DestTextBox = $destTextBox
+        FormatComboBox = $formatComboBox
+        CompactCheckBox = $compactCheckBox
+        ProgressBar = $progressBar
+        StatusLabel = $statusLabel
+        TabPage = $TabPage
+    }
+
     # Event handlers
     $sourceButton.Add_Click({
+        param($sender, $eventArgs)
+
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.iso;*.raw|VirtualBox Disk Images|*.vdi;*.vmdk;*.vhd|All Files (*.*)|*.*"
         $openFileDialog.Title = "Select Source Disk Image"
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $sourceTextBox.Text = $openFileDialog.FileName
+            $controls.SourceTextBox.Text = $openFileDialog.FileName
             # Auto-suggest destination if empty
-            if ([string]::IsNullOrEmpty($destTextBox.Text)) {
+            if ([string]::IsNullOrEmpty($controls.DestTextBox.Text)) {
                 $sourceDir = Split-Path $openFileDialog.FileName -Parent
                 $sourceBaseName = [System.IO.Path]::GetFileNameWithoutExtension($openFileDialog.FileName)
-                $ext = $formatComboBox.SelectedItem.ToString().ToLower()
-                $destTextBox.Text = Join-Path $sourceDir "$sourceBaseName-converted.$ext"
+                $ext = $controls.FormatComboBox.SelectedItem.ToString().ToLower()
+                $controls.DestTextBox.Text = Join-Path $sourceDir "$sourceBaseName-converted.$ext"
             }
         }
     })
 
     $destButton.Add_Click({
+        param($sender, $eventArgs)
+
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
         $saveFileDialog.Filter = "VDI (*.vdi)|*.vdi|VMDK (*.vmdk)|*.vmdk|VHD (*.vhd)|*.vhd|RAW (*.raw)|*.raw|All Files (*.*)|*.*"
         $saveFileDialog.Title = "Select Destination Disk Image"
-        $extension = $formatComboBox.SelectedItem.ToString().ToLower()
+        $extension = $controls.FormatComboBox.SelectedItem.ToString().ToLower()
         $saveFileDialog.DefaultExt = ".$extension"
         if ($saveFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $destTextBox.Text = $saveFileDialog.FileName
+            $controls.DestTextBox.Text = $saveFileDialog.FileName
         }
     })
 
-    $formatComboBox.Add_SelectedIndexChanged({
+    $controls.FormatComboBox.add_SelectedIndexChanged({
+        param($sender, $eventArgs)
+
         # Update destination file extension when format changes
-        if (-not [string]::IsNullOrEmpty($destTextBox.Text)) {
-            $currentPath = $destTextBox.Text
+        if (-not [string]::IsNullOrEmpty($controls.DestTextBox.Text)) {
+            $currentPath = $controls.DestTextBox.Text
             $dir = Split-Path $currentPath -Parent
             $baseName = [System.IO.Path]::GetFileNameWithoutExtension($currentPath)
-            $newExt = $formatComboBox.SelectedItem.ToString().ToLower()
-            $destTextBox.Text = Join-Path $dir "$baseName.$newExt"
+            $newExt = $controls.FormatComboBox.SelectedItem.ToString().ToLower()
+            $controls.DestTextBox.Text = Join-Path $dir "$baseName.$newExt"
         }
     })
 
     $convertButton.Add_Click({
-        if ([string]::IsNullOrEmpty($sourceTextBox.Text) -or [string]::IsNullOrEmpty($destTextBox.Text)) {
+        param($sender, $eventArgs)
+
+        if ([string]::IsNullOrEmpty($controls.SourceTextBox.Text) -or [string]::IsNullOrEmpty($controls.DestTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please select both source and destination files.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
 
-        if (-not (Test-Path $sourceTextBox.Text)) {
+        if (-not (Test-Path $controls.SourceTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Source file does not exist.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
 
-        $progressBar.Visible = $true
-        $statusLabel.Text = "Converting image..."
-        $TabPage.Parent.Refresh()
+        $controls.ProgressBar.Visible = $true
+        $controls.StatusLabel.Text = "Converting image..."
+        $controls.TabPage.Parent.Refresh()
 
         try {
-            $result = Convert-VBoxDiskImage -Source $sourceTextBox.Text -Destination $destTextBox.Text -Format $formatComboBox.SelectedItem
+            $result = Convert-VBoxDiskImage -Source $controls.SourceTextBox.Text -Destination $controls.DestTextBox.Text -Format $controls.FormatComboBox.SelectedItem
             if ($result.ExitCode -eq 0) {
-                $statusLabel.Text = "Conversion completed successfully!"
+                $controls.StatusLabel.Text = "Conversion completed successfully!"
 
                 # Optionally compact the image after conversion
-                if ($compactCheckBox.Checked) {
-                    $statusLabel.Text = "Conversion completed. Compacting image..."
-                    $compactResult = Optimize-VBoxDiskImage -ImagePath $destTextBox.Text
+                if ($controls.CompactCheckBox.Checked) {
+                    $controls.StatusLabel.Text = "Conversion completed. Compacting image..."
+                    $compactResult = Optimize-VBoxDiskImage -ImagePath $controls.DestTextBox.Text
                     if ($compactResult.ExitCode -eq 0) {
-                        $statusLabel.Text = "Conversion and compaction completed successfully!"
+                        $controls.StatusLabel.Text = "Conversion and compaction completed successfully!"
                     } else {
-                        $statusLabel.Text = "Conversion completed but compaction failed: $($compactResult.Error)"
+                        $controls.StatusLabel.Text = "Conversion completed but compaction failed: $($compactResult.Error)"
                     }
                 }
 
                 [System.Windows.Forms.MessageBox]::Show("Conversion completed successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
             } else {
-                $statusLabel.Text = "Error: $($result.Error)"
+                $controls.StatusLabel.Text = "Error: $($result.Error)"
                 [System.Windows.Forms.MessageBox]::Show("Conversion failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } catch {
-            $statusLabel.Text = "Error: $($_.Exception.Message)"
+            $controls.StatusLabel.Text = "Error: $($_.Exception.Message)"
             [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         } finally {
-            $progressBar.Visible = $false
+            $controls.ProgressBar.Visible = $false
         }
     })
 }
@@ -274,42 +293,54 @@ function Initialize-ManageTab {
     $statusLabel.Text = "Click Refresh to load disk images."
     $TabPage.Controls.Add($statusLabel)
 
+    # Store controls in a hashtable to pass to event handlers
+    $controls = @{
+        DataGridView = $dataGridView
+        CompactButton = $compactButton
+        ResizeButton = $resizeButton
+        StatusLabel = $statusLabel
+        TabPage = $TabPage
+    }
+
     # Load disk images function
     function Get-DiskImage {
-        $dataGridView.Rows.Clear()
+        $controls.DataGridView.Rows.Clear()
         $disks = Get-VBoxDiskImage
 
         foreach ($disk in $disks) {
-            $row = $dataGridView.Rows.Add()
-            $dataGridView.Rows[$row].Cells["UUID"].Value = $disk.UUID
-            $dataGridView.Rows[$row].Cells["Location"].Value = $disk.Location
-            $dataGridView.Rows[$row].Cells["Format"].Value = $disk.Format
-            $dataGridView.Rows[$row].Cells["Capacity"].Value = $disk.Capacity
-            $dataGridView.Rows[$row].Cells["State"].Value = $disk.State
-            $dataGridView.Rows[$row].Cells["Type"].Value = $disk.Type
+            $row = $controls.DataGridView.Rows.Add()
+            $controls.DataGridView.Rows[$row].Cells["UUID"].Value = $disk.UUID
+            $controls.DataGridView.Rows[$row].Cells["Location"].Value = $disk.Location
+            $controls.DataGridView.Rows[$row].Cells["Format"].Value = $disk.Format
+            $controls.DataGridView.Rows[$row].Cells["Capacity"].Value = $disk.Capacity
+            $controls.DataGridView.Rows[$row].Cells["State"].Value = $disk.State
+            $controls.DataGridView.Rows[$row].Cells["Type"].Value = $disk.Type
         }
 
-        $statusLabel.Text = "Loaded $($disks.Count) disk images."
+        $controls.StatusLabel.Text = "Loaded $($disks.Count) disk images."
     }
 
     # Event handlers
     $refreshButton.Add_Click({
+        param($sender, $eventArgs)
         Get-DiskImage
     })
 
-    $dataGridView.Add_SelectionChanged({
-        if ($dataGridView.SelectedRows.Count -gt 0) {
-            $compactButton.Enabled = $true
-            $resizeButton.Enabled = $true
+    $controls.DataGridView.Add_SelectionChanged({
+        param($sender, $eventArgs)
+        if ($controls.DataGridView.SelectedRows.Count -gt 0) {
+            $controls.CompactButton.Enabled = $true
+            $controls.ResizeButton.Enabled = $true
         } else {
-            $compactButton.Enabled = $false
-            $resizeButton.Enabled = $false
+            $controls.CompactButton.Enabled = $false
+            $controls.ResizeButton.Enabled = $false
         }
     })
 
     $compactButton.Add_Click({
-        if ($dataGridView.SelectedRows.Count -gt 0) {
-            $selectedRow = $dataGridView.SelectedRows[0]
+        param($sender, $eventArgs)
+        if ($controls.DataGridView.SelectedRows.Count -gt 0) {
+            $selectedRow = $controls.DataGridView.SelectedRows[0]
             $imagePath = $selectedRow.Cells["Location"].Value
 
             if ([System.Windows.Forms.MessageBox]::Show("Compact disk image '$imagePath'? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
@@ -330,8 +361,9 @@ function Initialize-ManageTab {
     })
 
     $resizeButton.Add_Click({
-        if ($dataGridView.SelectedRows.Count -gt 0) {
-            $selectedRow = $dataGridView.SelectedRows[0]
+        param($sender, $eventArgs)
+        if ($controls.DataGridView.SelectedRows.Count -gt 0) {
+            $selectedRow = $controls.DataGridView.SelectedRows[0]
             $imagePath = $selectedRow.Cells["Location"].Value
 
             # Prompt for new size
@@ -367,7 +399,7 @@ function Initialize-ManageTab {
             $inputForm.CancelButton = $cancelButton
             $inputForm.Controls.Add($cancelButton)
 
-            if ($inputForm.ShowDialog($TabPage.Parent.FindForm()) -eq [System.Windows.Forms.DialogResult]::OK) {
+            if ($inputForm.ShowDialog($controls.TabPage.Parent.FindForm()) -eq [System.Windows.Forms.DialogResult]::OK) {
                 try {
                     $newSize = [int]$textBox.Text
                     $result = Resize-VBoxDiskImage -ImagePath $imagePath -SizeMB $newSize
@@ -454,35 +486,47 @@ function Initialize-CreateTab {
     $statusLabel.AutoSize = $true
     $TabPage.Controls.Add($statusLabel)
 
+    # Store controls in a hashtable to pass to event handlers
+    $controls = @{
+        PathTextBox = $pathTextBox
+        FormatComboBox = $formatComboBox
+        SizeTextBox = $sizeTextBox
+        StatusLabel = $statusLabel
+    }
+
     # Event handlers
     $pathButton.Add_Click({
+        param($sender, $eventArgs)
+
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
         $saveFileDialog.Filter = "VDI (*.vdi)|*.vdi|VMDK (*.vmdk)|*.vmdk|VHD (*.vhd)|*.vhd|RAW (*.raw)|*.raw|All Files (*.*)|*.*"
-        $extension = $formatComboBox.SelectedItem.ToString().ToLower()
+        $extension = $controls.FormatComboBox.SelectedItem.ToString().ToLower()
         $saveFileDialog.DefaultExt = ".$extension"
         if ($saveFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $pathTextBox.Text = $saveFileDialog.FileName
+            $controls.PathTextBox.Text = $saveFileDialog.FileName
         }
     })
 
     $createButton.Add_Click({
-        if ([string]::IsNullOrEmpty($pathTextBox.Text) -or [string]::IsNullOrEmpty($sizeTextBox.Text)) {
+        param($sender, $eventArgs)
+
+        if ([string]::IsNullOrEmpty($controls.PathTextBox.Text) -or [string]::IsNullOrEmpty($controls.SizeTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please enter path and size.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
 
         try {
-            $size = [int]$sizeTextBox.Text
-            $result = New-VBoxDiskImage -Path $pathTextBox.Text -Format $formatComboBox.SelectedItem -SizeMB $size
+            $size = [int]$controls.SizeTextBox.Text
+            $result = New-VBoxDiskImage -Path $controls.PathTextBox.Text -Format $controls.FormatComboBox.SelectedItem -SizeMB $size
             if ($result.ExitCode -eq 0) {
-                $statusLabel.Text = "Disk image created successfully!"
+                $controls.StatusLabel.Text = "Disk image created successfully!"
                 [System.Windows.Forms.MessageBox]::Show("Disk image created successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
             } else {
-                $statusLabel.Text = "Error: $($result.Error)"
+                $controls.StatusLabel.Text = "Error: $($result.Error)"
                 [System.Windows.Forms.MessageBox]::Show("Creation failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } catch {
-            $statusLabel.Text = "Error: $($_.Exception.Message)"
+            $controls.StatusLabel.Text = "Error: $($_.Exception.Message)"
             [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
     })
