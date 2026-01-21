@@ -56,6 +56,6 @@ Or use the installation script:
 The application is organized into modules:
 
 - `VirtualBoxGUI.ps1`: Main application entry point
-- `Modules/VBoxCommands.ps1`: VBoxManage command wrappers with automatic path detection
+- `Modules/VBoxCommands.ps1`: VBoxManage command wrappers with automatic path detection (includes functions like Convert-VBoxDiskImage, New-VBoxDiskImage, Optimize-VBoxDiskImage, etc.)
 - `Modules/GUIComponents.ps1`: Windows Forms GUI components
 - `Modules/AdvancedFeatures.ps1`: Advanced disk management features

@@ -68,7 +68,7 @@ function Invoke-VBoxCommand {
     }
 }
 
-function Get-VBoxDiskImages {
+function Get-VBoxDiskImage {
     # List all registered VMs and their attached disks
     $result = Invoke-VBoxCommand "list hdds"
     if ($result.ExitCode -eq 0) {
@@ -103,12 +103,12 @@ function Get-VBoxDiskImages {
 
         return $disks
     } else {
-        Write-Host "Error getting disk images: $($result.Error)"
+        Write-Verbose "Error getting disk images: $($result.Error)"
         return @()
     }
 }
 
-function Convert-VBoxImage {
+function Convert-VBoxDiskImage {
     param(
         [string]$Source,
         [string]$Destination,
@@ -119,7 +119,7 @@ function Convert-VBoxImage {
     return Invoke-VBoxCommand $arguments
 }
 
-function Resize-VBoxImage {
+function Resize-VBoxDiskImage {
     param(
         [string]$ImagePath,
         [int]$SizeMB
@@ -129,7 +129,7 @@ function Resize-VBoxImage {
     return Invoke-VBoxCommand $arguments
 }
 
-function Create-VBoxImage {
+function New-VBoxDiskImage {
     param(
         [string]$Path,
         [string]$Format,
@@ -140,7 +140,7 @@ function Create-VBoxImage {
     return Invoke-VBoxCommand $arguments
 }
 
-function Compact-VBoxImage {
+function Optimize-VBoxDiskImage {
     param(
         [string]$ImagePath
     )
@@ -149,7 +149,7 @@ function Compact-VBoxImage {
     return Invoke-VBoxCommand $arguments
 }
 
-function Clone-VBoxImage {
+function Copy-VBoxDiskImage {
     param(
         [string]$Source,
         [string]$Destination,
@@ -169,7 +169,7 @@ function Get-VBoxInfo {
     return Invoke-VBoxCommand $arguments
 }
 
-function Get-VBoxSupportedFormats {
+function Get-VBoxSupportedFormat {
     # Get information about supported disk formats
     $result = Invoke-VBoxCommand "list systeminfo"
     if ($result.ExitCode -eq 0) {
@@ -206,23 +206,37 @@ function Repair-VBoxImage {
     return Invoke-VBoxCommand $arguments
 }
 
-function Encrypt-VBoxImage {
+function Protect-VBoxDiskImage {
     param(
         [string]$ImagePath,
-        [string]$Password,
+        [SecureString]$Password,
         [string]$Cipher = "AES-256-XTS"
     )
 
-    $arguments = "encryptmedium `"$ImagePath`" --password $Password --cipher $Cipher"
-    return Invoke-VBoxCommand $arguments
+    # Convert SecureString to plain text for VBoxManage (this is a limitation of VBoxManage)
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+    try {
+        $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+        $arguments = "encryptmedium `"$ImagePath`" --password $plainPassword --cipher $Cipher"
+        return Invoke-VBoxCommand $arguments
+    } finally {
+        [Runtime.InteropServices.Marshal]::FreeBSTR($bstr)
+    }
 }
 
-function Unlock-VBoxImage {
+function Unlock-VBoxDiskImage {
     param(
         [string]$ImagePath,
-        [string]$Password
+        [SecureString]$Password
     )
 
-    $arguments = "closemedium disk `"$ImagePath`" --password $Password"
-    return Invoke-VBoxCommand $arguments
+    # Convert SecureString to plain text for VBoxManage (this is a limitation of VBoxManage)
+    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+    try {
+        $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+        $arguments = "closemedium disk `"$ImagePath`" --password $plainPassword"
+        return Invoke-VBoxCommand $arguments
+    } finally {
+        [Runtime.InteropServices.Marshal]::FreeBSTR($bstr)
+    }
 }

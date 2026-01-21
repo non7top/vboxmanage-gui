@@ -193,14 +193,14 @@ function Initialize-ConvertTab {
         $form.Refresh()
 
         try {
-            $result = Convert-VBoxImage -Source $sourceTextBox.Text -Destination $destTextBox.Text -Format $formatComboBox.SelectedItem
+            $result = Convert-VBoxDiskImage -Source $sourceTextBox.Text -Destination $destTextBox.Text -Format $formatComboBox.SelectedItem
             if ($result.ExitCode -eq 0) {
                 $statusLabel.Text = "Conversion completed successfully!"
 
                 # Optionally compact the image after conversion
                 if ($compactCheckBox.Checked) {
                     $statusLabel.Text = "Conversion completed. Compacting image..."
-                    $compactResult = Compact-VBoxImage -ImagePath $destTextBox.Text
+                    $compactResult = Optimize-VBoxDiskImage -ImagePath $destTextBox.Text
                     if ($compactResult.ExitCode -eq 0) {
                         $statusLabel.Text = "Conversion and compaction completed successfully!"
                     } else {
@@ -275,9 +275,9 @@ function Initialize-ManageTab {
     $TabPage.Controls.Add($statusLabel)
 
     # Load disk images function
-    function Load-DiskImages {
+    function Load-DiskImage {
         $dataGridView.Rows.Clear()
-        $disks = Get-VBoxDiskImages
+        $disks = Get-VBoxDiskImage
 
         foreach ($disk in $disks) {
             $row = $dataGridView.Rows.Add()
@@ -294,7 +294,7 @@ function Initialize-ManageTab {
 
     # Event handlers
     $refreshButton.Add_Click({
-        Load-DiskImages
+        Load-DiskImage
     })
 
     $dataGridView.Add_SelectionChanged({
@@ -315,10 +315,10 @@ function Initialize-ManageTab {
             if ([System.Windows.Forms.MessageBox]::Show("Compact disk image '$imagePath'? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
                 try {
-                    $result = Compact-VBoxImage -ImagePath $imagePath
+                    $result = Optimize-VBoxDiskImage -ImagePath $imagePath
                     if ($result.ExitCode -eq 0) {
                         [System.Windows.Forms.MessageBox]::Show("Disk image compacted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-                        Load-DiskImages  # Refresh the list
+                        Load-DiskImage  # Refresh the list
                     } else {
                         [System.Windows.Forms.MessageBox]::Show("Compaction failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
@@ -370,10 +370,10 @@ function Initialize-ManageTab {
             if ($inputForm.ShowDialog($TabPage.Parent.FindForm()) -eq [System.Windows.Forms.DialogResult]::OK) {
                 try {
                     $newSize = [int]$textBox.Text
-                    $result = Resize-VBoxImage -ImagePath $imagePath -SizeMB $newSize
+                    $result = Resize-VBoxDiskImage -ImagePath $imagePath -SizeMB $newSize
                     if ($result.ExitCode -eq 0) {
                         [System.Windows.Forms.MessageBox]::Show("Disk image resized successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-                        Load-DiskImages  # Refresh the list
+                        Load-DiskImage  # Refresh the list
                     } else {
                         [System.Windows.Forms.MessageBox]::Show("Resize failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
@@ -473,7 +473,7 @@ function Initialize-CreateTab {
 
         try {
             $size = [int]$sizeTextBox.Text
-            $result = Create-VBoxImage -Path $pathTextBox.Text -Format $formatComboBox.SelectedItem -SizeMB $size
+            $result = New-VBoxDiskImage -Path $pathTextBox.Text -Format $formatComboBox.SelectedItem -SizeMB $size
             if ($result.ExitCode -eq 0) {
                 $statusLabel.Text = "Disk image created successfully!"
                 [System.Windows.Forms.MessageBox]::Show("Disk image created successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)

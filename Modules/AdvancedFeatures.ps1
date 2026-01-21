@@ -119,8 +119,11 @@ function Initialize-AdvancedTab {
 
         if ([System.Windows.Forms.MessageBox]::Show("Encrypt disk image? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
+            # Convert plain text password to SecureString
+            $securePassword = ConvertTo-SecureString $encPasswordTextBox.Text -AsPlainText -Force
+
             try {
-                $result = Encrypt-VBoxImage -ImagePath $encPathTextBox.Text -Password $encPasswordTextBox.Text -Cipher $encCipherComboBox.SelectedItem
+                $result = Protect-VBoxDiskImage -ImagePath $encPathTextBox.Text -Password $securePassword -Cipher $encCipherComboBox.SelectedItem
                 if ($result.ExitCode -eq 0) {
                     [System.Windows.Forms.MessageBox]::Show("Disk image encrypted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                 } else {
