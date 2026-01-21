@@ -16,125 +16,116 @@ function Initialize-AdvancedTab {
     )
 
     # Create a group box for encryption features
-    $encryptionGroupBox = New-Object System.Windows.Forms.GroupBox
-    $encryptionGroupBox.Location = New-Object System.Drawing.Point(20, 20)
-    $encryptionGroupBox.Size = New-Object System.Drawing.Size(700, 150)
-    $encryptionGroupBox.Text = "Encryption"
-    $TabPage.Controls.Add($encryptionGroupBox)
+    $Script:encryptionGroupBox = New-Object System.Windows.Forms.GroupBox
+    $Script:encryptionGroupBox.Location = New-Object System.Drawing.Point(20, 20)
+    $Script:encryptionGroupBox.Size = New-Object System.Drawing.Size(700, 150)
+    $Script:encryptionGroupBox.Text = "Encryption"
+    $TabPage.Controls.Add($Script:encryptionGroupBox)
 
     # Encryption controls
-    $encPathLabel = New-Object System.Windows.Forms.Label
-    $encPathLabel.Location = New-Object System.Drawing.Point(10, 25)
-    $encPathLabel.Size = New-Object System.Drawing.Size(80, 20)
-    $encPathLabel.Text = "Image Path:"
-    $encryptionGroupBox.Controls.Add($encPathLabel)
+    $Script:encPathLabel = New-Object System.Windows.Forms.Label
+    $Script:encPathLabel.Location = New-Object System.Drawing.Point(10, 25)
+    $Script:encPathLabel.Size = New-Object System.Drawing.Size(80, 20)
+    $Script:encPathLabel.Text = "Image Path:"
+    $Script:encryptionGroupBox.Controls.Add($Script:encPathLabel)
 
-    $encPathTextBox = New-Object System.Windows.Forms.TextBox
-    $encPathTextBox.Location = New-Object System.Drawing.Point(90, 25)
-    $encPathTextBox.Size = New-Object System.Drawing.Size(400, 20)
-    $encryptionGroupBox.Controls.Add($encPathTextBox)
+    $Script:encPathTextBox = New-Object System.Windows.Forms.TextBox
+    $Script:encPathTextBox.Location = New-Object System.Drawing.Point(90, 25)
+    $Script:encPathTextBox.Size = New-Object System.Drawing.Size(400, 20)
+    $Script:encryptionGroupBox.Controls.Add($Script:encPathTextBox)
 
-    $encPathButton = New-Object System.Windows.Forms.Button
-    $encPathButton.Location = New-Object System.Drawing.Point(500, 25)
-    $encPathButton.Size = New-Object System.Drawing.Size(75, 23)
-    $encPathButton.Text = "Browse..."
-    $encryptionGroupBox.Controls.Add($encPathButton)
+    $Script:encPathButton = New-Object System.Windows.Forms.Button
+    $Script:encPathButton.Location = New-Object System.Drawing.Point(500, 25)
+    $Script:encPathButton.Size = New-Object System.Drawing.Size(75, 23)
+    $Script:encPathButton.Text = "Browse..."
+    $Script:encryptionGroupBox.Controls.Add($Script:encPathButton)
 
-    $encPasswordLabel = New-Object System.Windows.Forms.Label
-    $encPasswordLabel.Location = New-Object System.Drawing.Point(10, 55)
-    $encPasswordLabel.Size = New-Object System.Drawing.Size(80, 20)
-    $encPasswordLabel.Text = "Password:"
-    $encryptionGroupBox.Controls.Add($encPasswordLabel)
+    $Script:encPasswordLabel = New-Object System.Windows.Forms.Label
+    $Script:encPasswordLabel.Location = New-Object System.Drawing.Point(10, 55)
+    $Script:encPasswordLabel.Size = New-Object System.Drawing.Size(80, 20)
+    $Script:encPasswordLabel.Text = "Password:"
+    $Script:encryptionGroupBox.Controls.Add($Script:encPasswordLabel)
 
-    $encPasswordTextBox = New-Object System.Windows.Forms.TextBox
-    $encPasswordTextBox.Location = New-Object System.Drawing.Point(90, 55)
-    $encPasswordTextBox.Size = New-Object System.Drawing.Size(200, 20)
-    $encPasswordTextBox.PasswordChar = '*'
-    $encryptionGroupBox.Controls.Add($encPasswordTextBox)
+    $Script:encPasswordTextBox = New-Object System.Windows.Forms.TextBox
+    $Script:encPasswordTextBox.Location = New-Object System.Drawing.Point(90, 55)
+    $Script:encPasswordTextBox.Size = New-Object System.Drawing.Size(200, 20)
+    $Script:encPasswordTextBox.PasswordChar = '*'
+    $Script:encryptionGroupBox.Controls.Add($Script:encPasswordTextBox)
 
-    $encCipherLabel = New-Object System.Windows.Forms.Label
-    $encCipherLabel.Location = New-Object System.Drawing.Point(10, 85)
-    $encCipherLabel.Size = New-Object System.Drawing.Size(80, 20)
-    $encCipherLabel.Text = "Cipher:"
-    $encryptionGroupBox.Controls.Add($encCipherLabel)
+    $Script:encCipherLabel = New-Object System.Windows.Forms.Label
+    $Script:encCipherLabel.Location = New-Object System.Drawing.Point(10, 85)
+    $Script:encCipherLabel.Size = New-Object System.Drawing.Size(80, 20)
+    $Script:encCipherLabel.Text = "Cipher:"
+    $Script:encryptionGroupBox.Controls.Add($Script:encCipherLabel)
 
-    $encCipherComboBox = New-Object System.Windows.Forms.ComboBox
-    $encCipherComboBox.Location = New-Object System.Drawing.Point(90, 85)
-    $encCipherComboBox.Size = New-Object System.Drawing.Size(120, 20)
-    $encCipherComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
-    $encCipherComboBox.Items.AddRange(@("AES-256-XTS", "AES-128-XTS"))
-    $encCipherComboBox.SelectedIndex = 0
-    $encryptionGroupBox.Controls.Add($encCipherComboBox)
+    $Script:encCipherComboBox = New-Object System.Windows.Forms.ComboBox
+    $Script:encCipherComboBox.Location = New-Object System.Drawing.Point(90, 85)
+    $Script:encCipherComboBox.Size = New-Object System.Drawing.Size(120, 20)
+    $Script:encCipherComboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+    $Script:encCipherComboBox.Items.AddRange(@("AES-256-XTS", "AES-128-XTS"))
+    $Script:encCipherComboBox.SelectedIndex = 0
+    $Script:encryptionGroupBox.Controls.Add($Script:encCipherComboBox)
 
-    $encryptButton = New-Object System.Windows.Forms.Button
-    $encryptButton.Location = New-Object System.Drawing.Point(10, 115)
-    $encryptButton.Size = New-Object System.Drawing.Size(100, 25)
-    $encryptButton.Text = "Encrypt"
-    $encryptionGroupBox.Controls.Add($encryptButton)
+    $Script:encryptButton = New-Object System.Windows.Forms.Button
+    $Script:encryptButton.Location = New-Object System.Drawing.Point(10, 115)
+    $Script:encryptButton.Size = New-Object System.Drawing.Size(100, 25)
+    $Script:encryptButton.Text = "Encrypt"
+    $Script:encryptionGroupBox.Controls.Add($Script:encryptButton)
 
     # Create a group box for disk information
-    $infoGroupBox = New-Object System.Windows.Forms.GroupBox
-    $infoGroupBox.Location = New-Object System.Drawing.Point(20, 180)
-    $infoGroupBox.Size = New-Object System.Drawing.Size(700, 200)
-    $infoGroupBox.Text = "Disk Information"
-    $TabPage.Controls.Add($infoGroupBox)
+    $Script:infoGroupBox = New-Object System.Windows.Forms.GroupBox
+    $Script:infoGroupBox.Location = New-Object System.Drawing.Point(20, 180)
+    $Script:infoGroupBox.Size = New-Object System.Drawing.Size(700, 200)
+    $Script:infoGroupBox.Text = "Disk Information"
+    $TabPage.Controls.Add($Script:infoGroupBox)
 
     # Info controls
-    $infoPathLabel = New-Object System.Windows.Forms.Label
-    $infoPathLabel.Location = New-Object System.Drawing.Point(10, 25)
-    $infoPathLabel.Size = New-Object System.Drawing.Size(80, 20)
-    $infoPathLabel.Text = "Image Path:"
-    $infoGroupBox.Controls.Add($infoPathLabel)
+    $Script:infoPathLabel = New-Object System.Windows.Forms.Label
+    $Script:infoPathLabel.Location = New-Object System.Drawing.Point(10, 25)
+    $Script:infoPathLabel.Size = New-Object System.Drawing.Size(80, 20)
+    $Script:infoPathLabel.Text = "Image Path:"
+    $Script:infoGroupBox.Controls.Add($Script:infoPathLabel)
 
-    $infoPathTextBox = New-Object System.Windows.Forms.TextBox
-    $infoPathTextBox.Location = New-Object System.Drawing.Point(90, 25)
-    $infoPathTextBox.Size = New-Object System.Drawing.Size(400, 20)
-    $infoGroupBox.Controls.Add($infoPathTextBox)
+    $Script:infoPathTextBox = New-Object System.Windows.Forms.TextBox
+    $Script:infoPathTextBox.Location = New-Object System.Drawing.Point(90, 25)
+    $Script:infoPathTextBox.Size = New-Object System.Drawing.Size(400, 20)
+    $Script:infoGroupBox.Controls.Add($Script:infoPathTextBox)
 
-    $infoPathButton = New-Object System.Windows.Forms.Button
-    $infoPathButton.Location = New-Object System.Drawing.Point(500, 25)
-    $infoPathButton.Size = New-Object System.Drawing.Size(75, 23)
-    $infoPathButton.Text = "Browse..."
-    $infoGroupBox.Controls.Add($infoPathButton)
+    $Script:infoPathButton = New-Object System.Windows.Forms.Button
+    $Script:infoPathButton.Location = New-Object System.Drawing.Point(500, 25)
+    $Script:infoPathButton.Size = New-Object System.Drawing.Size(75, 23)
+    $Script:infoPathButton.Text = "Browse..."
+    $Script:infoGroupBox.Controls.Add($Script:infoPathButton)
 
-    $getInfoButton = New-Object System.Windows.Forms.Button
-    $getInfoButton.Location = New-Object System.Drawing.Point(10, 55)
-    $getInfoButton.Size = New-Object System.Drawing.Size(100, 25)
-    $getInfoButton.Text = "Get Info"
-    $infoGroupBox.Controls.Add($getInfoButton)
+    $Script:getInfoButton = New-Object System.Windows.Forms.Button
+    $Script:getInfoButton.Location = New-Object System.Drawing.Point(10, 55)
+    $Script:getInfoButton.Size = New-Object System.Drawing.Size(100, 25)
+    $Script:getInfoButton.Text = "Get Info"
+    $Script:infoGroupBox.Controls.Add($Script:getInfoButton)
 
     # Rich text box for displaying disk information
-    $infoRichTextBox = New-Object System.Windows.Forms.RichTextBox
-    $infoRichTextBox.Location = New-Object System.Drawing.Point(10, 85)
-    $infoRichTextBox.Size = New-Object System.Drawing.Size(680, 100)
-    $infoRichTextBox.ReadOnly = $true
-    $infoRichTextBox.Font = New-Object System.Drawing.Font("Consolas", 8)
-    $infoGroupBox.Controls.Add($infoRichTextBox)
-
-    # Store controls in a hashtable to pass to event handlers
-    $controls = @{
-        EncPathTextBox = $encPathTextBox
-        EncPasswordTextBox = $encPasswordTextBox
-        EncCipherComboBox = $encCipherComboBox
-        InfoPathTextBox = $infoPathTextBox
-        InfoRichTextBox = $infoRichTextBox
-    }
+    $Script:infoRichTextBox = New-Object System.Windows.Forms.RichTextBox
+    $Script:infoRichTextBox.Location = New-Object System.Drawing.Point(10, 85)
+    $Script:infoRichTextBox.Size = New-Object System.Drawing.Size(680, 100)
+    $Script:infoRichTextBox.ReadOnly = $true
+    $Script:infoRichTextBox.Font = New-Object System.Drawing.Font("Consolas", 8)
+    $Script:infoGroupBox.Controls.Add($Script:infoRichTextBox)
 
     # Event handlers for encryption
-    $encPathButton.Add_Click({
+    $Script:encPathButton.Add_Click({
         param($sender, $eventArgs)
 
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $controls.EncPathTextBox.Text = $openFileDialog.FileName
+            $Script:encPathTextBox.Text = $openFileDialog.FileName
         }
     })
 
-    $encryptButton.Add_Click({
+    $Script:encryptButton.Add_Click({
         param($sender, $eventArgs)
 
-        if ([string]::IsNullOrEmpty($controls.EncPathTextBox.Text) -or [string]::IsNullOrEmpty($controls.EncPasswordTextBox.Text)) {
+        if ([string]::IsNullOrEmpty($Script:encPathTextBox.Text) -or [string]::IsNullOrEmpty($Script:encPasswordTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path and password.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
@@ -142,10 +133,10 @@ function Initialize-AdvancedTab {
         if ([System.Windows.Forms.MessageBox]::Show("Encrypt disk image? This operation cannot be undone.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question) -eq [System.Windows.Forms.DialogResult]::Yes) {
 
             # Convert plain text password to SecureString using helper function that properly handles the suppression
-            $securePassword = Convert-PlainTextToSecureString -PlainText $controls.EncPasswordTextBox.Text
+            $securePassword = Convert-PlainTextToSecureString -PlainText $Script:encPasswordTextBox.Text
 
             try {
-                $result = Protect-VBoxDiskImage -ImagePath $controls.EncPathTextBox.Text -Password $securePassword -Cipher $controls.EncCipherComboBox.SelectedItem
+                $result = Protect-VBoxDiskImage -ImagePath $Script:encPathTextBox.Text -Password $securePassword -Cipher $Script:encCipherComboBox.SelectedItem
                 if ($result.ExitCode -eq 0) {
                     [System.Windows.Forms.MessageBox]::Show("Disk image encrypted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                 } else {
@@ -158,28 +149,28 @@ function Initialize-AdvancedTab {
     })
 
     # Event handlers for disk info
-    $infoPathButton.Add_Click({
+    $Script:infoPathButton.Add_Click({
         param($sender, $eventArgs)
 
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-            $controls.InfoPathTextBox.Text = $openFileDialog.FileName
+            $Script:infoPathTextBox.Text = $openFileDialog.FileName
         }
     })
 
-    $getInfoButton.Add_Click({
+    $Script:getInfoButton.Add_Click({
         param($sender, $eventArgs)
 
-        if ([string]::IsNullOrEmpty($controls.InfoPathTextBox.Text)) {
+        if ([string]::IsNullOrEmpty($Script:infoPathTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
             return
         }
 
         try {
-            $result = Get-VBoxInfo -ImagePath $controls.InfoPathTextBox.Text
+            $result = Get-VBoxInfo -ImagePath $Script:infoPathTextBox.Text
             if ($result.ExitCode -eq 0) {
-                $controls.InfoRichTextBox.Text = $result.Output
+                $Script:infoRichTextBox.Text = $result.Output
             } else {
                 [System.Windows.Forms.MessageBox]::Show("Failed to get disk info: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
