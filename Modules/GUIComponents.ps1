@@ -42,6 +42,9 @@ function Initialize-ConvertTab {
         [System.Windows.Forms.TabPage]$TabPage
     )
 
+    # Store the TabPage in script scope to make it accessible in event handlers
+    $Script:convertTabPage = $TabPage
+
     # Source file selection
     $Script:sourceLabel = New-Object System.Windows.Forms.Label
     $Script:sourceLabel.Location = New-Object System.Drawing.Point(20, 20)
@@ -198,7 +201,7 @@ function Initialize-ConvertTab {
 
         $Script:progressBar.Visible = $true
         $Script:statusLabel.Text = "Converting image..."
-        $TabPage.Parent.Refresh()
+        $Script:convertTabPage.Parent.Parent.Refresh()
 
         try {
             $result = Convert-VBoxDiskImage -Source $Script:sourceTextBox.Text -Destination $Script:destTextBox.Text -Format $Script:formatComboBox.SelectedItem
@@ -234,6 +237,9 @@ function Initialize-ManageTab {
     param(
         [System.Windows.Forms.TabPage]$TabPage
     )
+
+    # Store the TabPage in script scope to make it accessible in event handlers
+    $Script:manageTabPage = $TabPage
 
     # Refresh button
     $Script:refreshButton = New-Object System.Windows.Forms.Button
@@ -379,7 +385,7 @@ function Initialize-ManageTab {
             $inputForm.CancelButton = $cancelButton
             $inputForm.Controls.Add($cancelButton)
 
-            if ($inputForm.ShowDialog($TabPage.Parent.FindForm()) -eq [System.Windows.Forms.DialogResult]::OK) {
+            if ($inputForm.ShowDialog($Script:manageTabPage.Parent.FindForm()) -eq [System.Windows.Forms.DialogResult]::OK) {
                 try {
                     $newSize = [int]$textBox.Text
                     $result = Resize-VBoxDiskImage -ImagePath $imagePath -SizeMB $newSize
@@ -404,6 +410,9 @@ function Initialize-CreateTab {
     param(
         [System.Windows.Forms.TabPage]$TabPage
     )
+
+    # Store the TabPage in script scope to make it accessible in event handlers
+    $Script:createTabPage = $TabPage
 
     # Path selection
     $Script:pathLabel = New-Object System.Windows.Forms.Label
