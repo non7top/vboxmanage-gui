@@ -1,3 +1,4 @@
+[![PowerShell Quality Checks](https://github.com/non7top/vboxmanage-gui/actions/workflows/powershell-quality-checks.yml/badge.svg)](https://github.com/non7top/vboxmanage-gui/actions/workflows/powershell-quality-checks.yml)
 # VirtualBox Disk Image Manager GUI
 
 A Windows Forms GUI application for managing and converting VirtualBox disk images using PowerShell.
