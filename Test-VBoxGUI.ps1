@@ -20,9 +20,9 @@ $allFilesExist = $true
 foreach ($file in $requiredFiles) {
     $fullPath = Join-Path $PSScriptRoot $file
     if (Test-Path $fullPath) {
-        Write-Verbose "  ✓ $file exists"
+        Write-Verbose "  + $file exists"
     } else {
-        Write-Warning "  ✗ $file missing"
+        Write-Warning "  - $file missing"
         $allFilesExist = $false
     }
 }
@@ -39,23 +39,23 @@ Write-Verbose "Test 2: Testing module imports..."
 
 try {
     . "$PSScriptRoot\Modules\VBoxCommands.ps1"
-    Write-Verbose "  ✓ VBoxCommands module loaded successfully"
+    Write-Verbose "  + VBoxCommands module loaded successfully"
 } catch {
-    Write-Warning "  ✗ VBoxCommands module failed to load: $($_.Exception.Message)"
+    Write-Warning "  - VBoxCommands module failed to load: $($_.Exception.Message)"
 }
 
 try {
     . "$PSScriptRoot\Modules\GUIComponents.ps1"
-    Write-Verbose "  ✓ GUIComponents module loaded successfully"
+    Write-Verbose "  + GUIComponents module loaded successfully"
 } catch {
-    Write-Warning "  ✗ GUIComponents module failed to load: $($_.Exception.Message)"
+    Write-Warning "  - GUIComponents module failed to load: $($_.Exception.Message)"
 }
 
 try {
     . "$PSScriptRoot\Modules\AdvancedFeatures.ps1"
-    Write-Verbose "  ✓ AdvancedFeatures module loaded successfully"
+    Write-Verbose "  + AdvancedFeatures module loaded successfully"
 } catch {
-    Write-Warning "  ✗ AdvancedFeatures module failed to load: $($_.Exception.Message)"
+    Write-Warning "  - AdvancedFeatures module failed to load: $($_.Exception.Message)"
 }
 
 # Test 3: Check if VBoxManage is available
@@ -63,11 +63,11 @@ Write-Verbose "Test 3: Checking VBoxManage availability..."
 
 $vboxAvailable = Get-Command vboxmanage.exe -ErrorAction SilentlyContinue
 if ($vboxAvailable) {
-    Write-Verbose "  ✓ VBoxManage is available"
+    Write-Verbose "  + VBoxManage is available"
     $versionResult = & vboxmanage --version
     Write-Verbose "  VirtualBox version: $versionResult"
 } else {
-    Write-Verbose "  ⚠ VBoxManage not found (this is expected if VirtualBox is not installed)"
+    Write-Verbose "  ~ VBoxManage not found (this is expected if VirtualBox is not installed)"
 }
 
 # Test 4: Check function definitions
@@ -92,9 +92,9 @@ $expectedFunctions = @(
 $missingFunctions = @()
 foreach ($func in $expectedFunctions) {
     if (Get-Command $func -ErrorAction SilentlyContinue) {
-        Write-Verbose "  ✓ Function $func exists"
+        Write-Verbose "  + Function $func exists"
     } else {
-        Write-Warning "  ✗ Function $func missing"
+        Write-Warning "  - Function $func missing"
         $missingFunctions += $func
     }
 }
@@ -119,9 +119,9 @@ $expectedGUICmdlets = @(
 $missingGUIComponents = @()
 foreach ($cmdlet in $expectedGUICmdlets) {
     if (Get-Command $cmdlet -ErrorAction SilentlyContinue) {
-        Write-Verbose "  ✓ GUI component $cmdlet exists"
+        Write-Verbose "  + GUI component $cmdlet exists"
     } else {
-        Write-Warning "  ✗ GUI component $cmdlet missing"
+        Write-Warning "  - GUI component $cmdlet missing"
         $missingGUIComponents += $cmdlet
     }
 }
@@ -142,9 +142,9 @@ $expectedGUIFunctions = @(
 $missingGUIFunctions = @()
 foreach ($func in $expectedGUIFunctions) {
     if (Get-Command $func -ErrorAction SilentlyContinue) {
-        Write-Verbose "  ✓ GUI function $func exists"
+        Write-Verbose "  + GUI function $func exists"
     } else {
-        Write-Warning "  ✗ GUI function $func missing"
+        Write-Warning "  - GUI function $func missing"
         $missingGUIFunctions += $func
     }
 }
