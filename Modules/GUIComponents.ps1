@@ -199,6 +199,14 @@ function Initialize-ConvertTab {
             return
         }
 
+        # Check if destination file already exists
+        if (Test-Path $Script:destTextBox.Text) {
+            $dialogResult = [System.Windows.Forms.MessageBox]::Show("Destination file already exists. Do you want to overwrite it?", "Confirm Overwrite", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+            if ($dialogResult -eq [System.Windows.Forms.DialogResult]::No) {
+                return
+            }
+        }
+
         $Script:progressBar.Visible = $true
         $Script:statusLabel.Text = "Converting image..."
         $Script:convertTabPage.Parent.Parent.Refresh()
@@ -222,10 +230,12 @@ function Initialize-ConvertTab {
                 [System.Windows.Forms.MessageBox]::Show("Conversion completed successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
             } else {
                 $Script:statusLabel.Text = "Error: $($result.Error)"
+                Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                 [System.Windows.Forms.MessageBox]::Show("Conversion failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } catch {
             $Script:statusLabel.Text = "Error: $($_.Exception.Message)"
+            Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
             [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         } finally {
             $Script:progressBar.Visible = $false
@@ -337,9 +347,11 @@ function Initialize-ManageTab {
                         [System.Windows.Forms.MessageBox]::Show("Disk image compacted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                         Get-DiskImage  # Refresh the list
                     } else {
+                        Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                         [System.Windows.Forms.MessageBox]::Show("Compaction failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
                 } catch {
+                    Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
                     [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                 }
             }
@@ -393,9 +405,11 @@ function Initialize-ManageTab {
                         [System.Windows.Forms.MessageBox]::Show("Disk image resized successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                         Get-DiskImage  # Refresh the list
                     } else {
+                        Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                         [System.Windows.Forms.MessageBox]::Show("Resize failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                     }
                 } catch {
+                    Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
                     [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                 }
             }
@@ -496,6 +510,14 @@ function Initialize-CreateTab {
             return
         }
 
+        # Check if destination file already exists
+        if (Test-Path $Script:pathTextBox.Text) {
+            $dialogResult = [System.Windows.Forms.MessageBox]::Show("Destination file already exists. Do you want to overwrite it?", "Confirm Overwrite", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+            if ($dialogResult -eq [System.Windows.Forms.DialogResult]::No) {
+                return
+            }
+        }
+
         try {
             $size = [int]$Script:sizeTextBox.Text
             $result = New-VBoxDiskImage -Path $Script:pathTextBox.Text -Format $Script:formatComboBox.SelectedItem -SizeMB $size
@@ -504,10 +526,12 @@ function Initialize-CreateTab {
                 [System.Windows.Forms.MessageBox]::Show("Disk image created successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
             } else {
                 $Script:statusLabel.Text = "Error: $($result.Error)"
+                Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                 [System.Windows.Forms.MessageBox]::Show("Creation failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } catch {
             $Script:statusLabel.Text = "Error: $($_.Exception.Message)"
+            Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
             [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
     })

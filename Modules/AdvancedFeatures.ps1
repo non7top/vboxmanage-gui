@@ -140,9 +140,11 @@ function Initialize-AdvancedTab {
                 if ($result.ExitCode -eq 0) {
                     [System.Windows.Forms.MessageBox]::Show("Disk image encrypted successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
                 } else {
+                    Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                     [System.Windows.Forms.MessageBox]::Show("Encryption failed: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
                 }
             } catch {
+                Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
                 [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         }
@@ -172,9 +174,11 @@ function Initialize-AdvancedTab {
             if ($result.ExitCode -eq 0) {
                 $Script:infoRichTextBox.Text = $result.Output
             } else {
+                Write-Host "VBoxManage Error: $($result.Error)"  # Print error to console
                 [System.Windows.Forms.MessageBox]::Show("Failed to get disk info: $($result.Error)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             }
         } catch {
+            Write-Host "Exception: $($_.Exception.Message)"  # Print exception to console
             [System.Windows.Forms.MessageBox]::Show("An error occurred: $($_.Exception.Message)", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
     })
