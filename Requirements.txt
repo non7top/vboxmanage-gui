@@ -1,0 +1,3 @@
+- run under windows
+- use powershell with System.Windows.Forms
+- a GUI to wrap all functions of the vboxmanage for converting and managing disk images

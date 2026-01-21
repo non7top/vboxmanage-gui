@@ -1,0 +1,110 @@
+name: PowerShell Quality Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  powershell-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PowerShell
+      uses: dcarbone/install-powershell-action@v1.0.0
+
+    - name: Install PSScriptAnalyzer
+      run: |
+        pwsh -Command "Set-PSRepository PSGallery -InstallationPolicy Trusted"
+        pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
+
+    - name: Find PowerShell scripts
+      id: find-scripts
+      run: |
+        echo "Finding PowerShell scripts in the repository..."
+        scripts=$(find . -name "*.ps1" -not -path "./.github/*" | sort)
+        echo "scripts<<EOF" >> $GITHUB_OUTPUT
+        echo "$scripts" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "Found $(echo "$scripts" | wc -l) PowerShell scripts"
+
+    - name: Check PowerShell syntax
+      run: |
+        set -e
+        script_list=$(echo "${{ steps.find-scripts.outputs.scripts }}" | sed '/^$/d')
+        if [[ -z "$script_list" ]]; then
+          echo "No PowerShell scripts found to check"
+          exit 0
+        fi
+
+        while IFS= read -r script; do
+          if [[ -n "$script" && -f "$script" ]]; then
+            echo "Checking syntax for: $script"
+            pwsh -Command "& {
+              try {
+                if (-not (Test-Path -Path '$script' -PathType Leaf)) {
+                  Write-Host 'File does not exist: $script'
+                  exit 1
+                }
+                `$contents = Get-Content -Path '$script' -Raw
+                `$errors = @()
+                `$null = [System.Management.Automation.PSParser]::Tokenize(`$contents, [ref]`$errors)
+                if (`$errors.Count -gt 0) {
+                  Write-Host 'Syntax errors found in $script:'
+                  foreach (`$error in `$errors) {
+                    Write-Host \"Line `$(`$error.StartLine): `$(`$error.Message)\"
+                  }
+                  exit 1
+                } else {
+                  Write-Host 'No syntax errors found in $script'
+                }
+              } catch {
+                Write-Host \"Error parsing $script : `$(`$_.Exception.Message)\"
+                exit 1
+              }
+            }"
+          fi
+        done <<< "$(echo "$script_list" | tr '\n' '\0' | xargs -0 -n 1)"
+
+    - name: Run PSScriptAnalyzer
+      run: |
+        script_list=$(echo "${{ steps.find-scripts.outputs.scripts }}" | sed '/^$/d')
+        if [[ -z "$script_list" ]]; then
+          echo "No PowerShell scripts found to analyze"
+          exit 0
+        fi
+
+        pwsh -Command "
+          # Initialize results
+          `$results = @()
+
+          # Analyze each script
+          `$scriptList = @(
+            $(echo "$script_list" | sed "s/^/'/; s/$/'/" | tr '\n' ', ')
+          )
+
+          foreach (`$scriptPath in `$scriptList) {
+            if (`$scriptPath -and (Test-Path `$scriptPath)) {
+              Write-Host \"Analyzing: `$(`$scriptPath)\"
+              `$analysis = Invoke-ScriptAnalyzer -Path `$scriptPath -Severity @('Error', 'Warning')
+              if (`$analysis) {
+                foreach (`$item in `$analysis) {
+                  Write-Host \"[$(`$item.Severity)] `$(`$item.RuleName): `$(`$item.Message) at line `$(`$item.Line)\"
+                  `$results += `$item
+                }
+              }
+            }
+          }
+
+          # Output results
+          if (`$results.Count -gt 0) {
+            Write-Host \"Found `$(`$results.Count) issues in total\"
+            exit 1
+          } else {
+            Write-Host 'PSScriptAnalyzer found no issues.'
+          }
+        "
