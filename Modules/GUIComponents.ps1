@@ -190,7 +190,7 @@ function Initialize-ConvertTab {
 
         $progressBar.Visible = $true
         $statusLabel.Text = "Converting image..."
-        $form.Refresh()
+        $TabPage.Parent.Refresh()
 
         try {
             $result = Convert-VBoxDiskImage -Source $sourceTextBox.Text -Destination $destTextBox.Text -Format $formatComboBox.SelectedItem
@@ -385,7 +385,7 @@ function Initialize-ManageTab {
     })
 
     # Load disk images initially
-    Load-DiskImages
+    Get-DiskImage
 }
 
 function Initialize-CreateTab {
