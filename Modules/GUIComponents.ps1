@@ -145,6 +145,10 @@ function Initialize-ConvertTab {
     $Script:sourceButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
 
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.iso;*.raw|VirtualBox Disk Images|*.vdi;*.vmdk;*.vhd|All Files (*.*)|*.*"
         $openFileDialog.Title = "Select Source Disk Image"
@@ -163,6 +167,10 @@ function Initialize-ConvertTab {
     $Script:destButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
 
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
         $saveFileDialog.Filter = "VDI (*.vdi)|*.vdi|VMDK (*.vmdk)|*.vmdk|VHD (*.vhd)|*.vhd|RAW (*.raw)|*.raw|All Files (*.*)|*.*"
         $saveFileDialog.Title = "Select Destination Disk Image"
@@ -176,6 +184,10 @@ function Initialize-ConvertTab {
     $Script:formatComboBox.add_SelectedIndexChanged({
         param($scriptSender, $scriptEventArgs)
 
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         # Update destination file extension when format changes
         if (-not [string]::IsNullOrEmpty($Script:destTextBox.Text)) {
             $currentPath = $Script:destTextBox.Text
@@ -188,6 +200,10 @@ function Initialize-ConvertTab {
 
     $Script:convertButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
 
         if ([string]::IsNullOrEmpty($Script:sourceTextBox.Text) -or [string]::IsNullOrEmpty($Script:destTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please select both source and destination files.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
@@ -319,11 +335,21 @@ function Initialize-ManageTab {
     # Event handlers
     $Script:refreshButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         Get-DiskImage
     })
 
     $Script:dataGridView.Add_SelectionChanged({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         if ($Script:dataGridView.SelectedRows.Count -gt 0) {
             $Script:compactButton.Enabled = $true
             $Script:resizeButton.Enabled = $true
@@ -335,6 +361,11 @@ function Initialize-ManageTab {
 
     $Script:compactButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         if ($Script:dataGridView.SelectedRows.Count -gt 0) {
             $selectedRow = $Script:dataGridView.SelectedRows[0]
             $imagePath = $selectedRow.Cells["Location"].Value
@@ -360,6 +391,11 @@ function Initialize-ManageTab {
 
     $Script:resizeButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         if ($Script:dataGridView.SelectedRows.Count -gt 0) {
             $selectedRow = $Script:dataGridView.SelectedRows[0]
             $imagePath = $selectedRow.Cells["Location"].Value
@@ -493,6 +529,10 @@ function Initialize-CreateTab {
     $Script:pathButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
 
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
+
         $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
         $saveFileDialog.Filter = "VDI (*.vdi)|*.vdi|VMDK (*.vmdk)|*.vmdk|VHD (*.vhd)|*.vhd|RAW (*.raw)|*.raw|All Files (*.*)|*.*"
         $extension = $Script:formatComboBox.SelectedItem.ToString().ToLower()
@@ -504,6 +544,10 @@ function Initialize-CreateTab {
 
     $Script:createButton.Add_Click({
         param($scriptSender, $scriptEventArgs)
+
+        # Use the parameters to avoid PSScriptAnalyzer warnings
+        $null = $scriptSender
+        $null = $scriptEventArgs
 
         if ([string]::IsNullOrEmpty($Script:pathTextBox.Text) -or [string]::IsNullOrEmpty($Script:sizeTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please enter path and size.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
