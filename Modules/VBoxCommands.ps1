@@ -126,17 +126,38 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    # If destination file exists, unregister it from VirtualBox first
+    # If destination file exists, check if it's registered in VirtualBox and unregister it
     if (Test-Path $Destination) {
         # Try to get disk info to find its UUID
-        $result = Invoke-VBoxCommand "showhdinfo `"$Destination`""
-        if ($result.ExitCode -eq 0) {
-            # Look for UUID in the output
-            $uuidMatch = [regex]::Match($result.Output, 'UUID:\s*([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})')
-            if ($uuidMatch.Success) {
-                $existingUUID = $uuidMatch.Groups[1].Value
-                # Close and remove the existing disk from VirtualBox registry
-                $unregisterResult = Invoke-VBoxCommand "closemedium disk `"$existingUUID`" --delete"
+        # First, try to find the UUID by querying VirtualBox for all HDDs and looking for our file
+        $allDisksResult = Invoke-VBoxCommand "list hdds"
+        if ($allDisksResult.ExitCode -eq 0) {
+            # Look for our destination file in the list of registered disks
+            $lines = $allDisksResult.Output -split "`n"
+            $currentDisk = @{}
+            $targetDiskUUID = $null
+
+            foreach ($line in $lines) {
+                if ($line -match "^UUID:") {
+                    if ($currentDisk.Path -and $currentDisk.Path -eq $Destination) {
+                        $targetDiskUUID = $currentDisk.UUID
+                        break
+                    }
+                    $currentDisk = @{}
+                    $currentDisk.UUID = ($line -split ":")[1].Trim()
+                } elseif ($line -match "^Location:") {
+                    $currentDisk.Path = ($line -split ":")[1].Trim()
+                }
+            }
+
+            # Check if the last disk in the list matches our destination
+            if (-not $targetDiskUUID -and $currentDisk.Path -and $currentDisk.Path -eq $Destination) {
+                $targetDiskUUID = $currentDisk.UUID
+            }
+
+            # If we found the UUID, unregister the disk from VirtualBox
+            if ($targetDiskUUID) {
+                $unregisterResult = Invoke-VBoxCommand "closemedium disk `"$targetDiskUUID`" --delete"
             }
         }
 
