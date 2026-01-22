@@ -174,8 +174,62 @@ function Convert-VBoxDiskImage {
         }
     }
 
-    $arguments = "clonemedium `"$Source`" `"$Destination`" --format $Format"
-    return Invoke-VBoxCommand $arguments
+    # Use a temporary file name to avoid UUID conflicts
+    $tempDestination = $Destination
+    if ($destinationExists) {
+        $destDir = Split-Path $Destination -Parent
+        $destName = [System.IO.Path]::GetFileNameWithoutExtension($Destination)
+        $destExt = [System.IO.Path]::GetExtension($Destination)
+        $tempDestination = Join-Path $destDir "$destName-temp$destExt"
+    }
+
+    # Perform the clone operation to the temporary file
+    $arguments = "clonemedium `"$Source`" `"$tempDestination`" --format $Format"
+    $result = Invoke-VBoxCommand $arguments
+
+    # If we used a temporary file, move it to the final destination
+    if ($result.ExitCode -eq 0 -and $destinationExists) {
+        # Unregister the temporary disk if it got registered
+        $tempDisksResult = Invoke-VBoxCommand "list hdds"
+        if ($tempDisksResult.ExitCode -eq 0) {
+            $lines = $tempDisksResult.Output -split "`n"
+            $currentDisk = @{}
+            $tempDiskUUID = $null
+
+            foreach ($line in $lines) {
+                if ($line -match "^UUID:") {
+                    if ($currentDisk.Path -and $currentDisk.Path -eq $tempDestination) {
+                        $tempDiskUUID = $currentDisk.UUID
+                        break
+                    }
+                    $currentDisk = @{}
+                    $currentDisk.UUID = ($line -split ":")[1].Trim()
+                } elseif ($line -match "^Location:") {
+                    $currentDisk.Path = ($line -split ":")[1].Trim()
+                }
+            }
+
+            # Check if the last disk in the list matches our temp destination
+            if (-not $tempDiskUUID -and $currentDisk.Path -and $currentDisk.Path -eq $tempDestination) {
+                $tempDiskUUID = $currentDisk.UUID
+            }
+
+            # If we found the temp disk UUID, unregister it
+            if ($tempDiskUUID) {
+                Invoke-VBoxCommand "closemedium disk `"$tempDiskUUID`" --delete" | Out-Null
+            }
+        }
+
+        # Remove the original destination if it exists (shouldn't anymore, but just in case)
+        if (Test-Path $Destination) {
+            Remove-Item -Path $Destination -Force
+        }
+
+        # Move the temp file to the final destination
+        Move-Item -Path $tempDestination -Force -Destination $Destination
+    }
+
+    return $result
 }
 
 function Resize-VBoxDiskImage {
