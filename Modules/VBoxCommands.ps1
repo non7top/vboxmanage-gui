@@ -126,12 +126,20 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    # Check if destination file exists and add --existing flag if needed
+    # Check if destination file exists and remove it first
     if (Test-Path $Destination) {
-        $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format --existing"
-    } else {
-        $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format"
+        try {
+            Remove-Item -Path $Destination -Force
+        } catch {
+            return @{
+                ExitCode = 1
+                Output = ""
+                Error = "Could not remove existing file: $($_.Exception.Message)"
+            }
+        }
     }
+
+    $arguments = "clonemedium `"$Source`" `"$Destination`" --format $Format"
     return Invoke-VBoxCommand $arguments
 }
 
