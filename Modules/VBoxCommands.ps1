@@ -126,10 +126,11 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    # If destination file exists, check if it's registered in VirtualBox and unregister it
-    if (Test-Path $Destination) {
-        # Try to get disk info to find its UUID
-        # First, try to find the UUID by querying VirtualBox for all HDDs and looking for our file
+    # Check if destination file exists
+    $destinationExists = Test-Path $Destination
+
+    if ($destinationExists) {
+        # Try to find and unregister the existing disk from VirtualBox
         $allDisksResult = Invoke-VBoxCommand "list hdds"
         if ($allDisksResult.ExitCode -eq 0) {
             # Look for our destination file in the list of registered disks
