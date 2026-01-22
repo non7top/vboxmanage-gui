@@ -126,7 +126,12 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format"
+    # Check if destination file exists and add --existing flag if needed
+    if (Test-Path $Destination) {
+        $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format --existing"
+    } else {
+        $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format"
+    }
     return Invoke-VBoxCommand $arguments
 }
 
@@ -148,10 +153,27 @@ function New-VBoxDiskImage {
         [int]$SizeMB
     )
 
-    $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
+    # Check if destination file exists
+    if (Test-Path $Path) {
+        if ($PSCmdlet.ShouldProcess("Existing disk image at $Path", "Overwrite")) {
+            # Remove the existing file first
+            Remove-Item -Path $Path -Force
+            $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
+            return Invoke-VBoxCommand $arguments
+        } else {
+            # Return an error indicating the file exists
+            return @{
+                ExitCode = 1
+                Output = ""
+                Error = "File already exists: $Path"
+            }
+        }
+    } else {
+        $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
 
-    if ($PSCmdlet.ShouldProcess("Disk image at $Path", "Create")) {
-        return Invoke-VBoxCommand $arguments
+        if ($PSCmdlet.ShouldProcess("Disk image at $Path", "Create")) {
+            return Invoke-VBoxCommand $arguments
+        }
     }
 }
 
