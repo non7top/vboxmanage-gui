@@ -126,8 +126,21 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    # Check if destination file exists and remove it first
+    # If destination file exists, unregister it from VirtualBox first
     if (Test-Path $Destination) {
+        # Try to get disk info to find its UUID
+        $result = Invoke-VBoxCommand "showhdinfo `"$Destination`""
+        if ($result.ExitCode -eq 0) {
+            # Look for UUID in the output
+            $uuidMatch = [regex]::Match($result.Output, 'UUID:\s*([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})')
+            if ($uuidMatch.Success) {
+                $existingUUID = $uuidMatch.Groups[1].Value
+                # Close and remove the existing disk from VirtualBox registry
+                $unregisterResult = Invoke-VBoxCommand "closemedium disk `"$existingUUID`" --delete"
+            }
+        }
+
+        # Remove the file anyway
         try {
             Remove-Item -Path $Destination -Force
         } catch {
