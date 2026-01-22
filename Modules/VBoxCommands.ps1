@@ -55,12 +55,12 @@ function Invoke-VBoxCommand {
         $process.WaitForExit()
 
         # Log the command and results for debugging
-        Write-Host "VBoxManage Command: $vboxManagePath $Arguments" -ForegroundColor Gray
+        Write-Verbose "VBoxManage Command: $vboxManagePath $Arguments"
         if ($errorOutput) {
-            Write-Host "VBoxManage Error: $errorOutput" -ForegroundColor Red
+            Write-Verbose "VBoxManage Error: $errorOutput"
         }
         if ($output -and $process.ExitCode -eq 0) {
-            Write-Host "VBoxManage Output: $output" -ForegroundColor Green
+            Write-Verbose "VBoxManage Output: $output"
         }
 
         return @{
@@ -70,7 +70,7 @@ function Invoke-VBoxCommand {
         }
     } catch {
         $errorMessage = $_.Exception.Message
-        Write-Host "VBoxManage Exception: $errorMessage" -ForegroundColor Red
+        Write-Verbose "VBoxManage Exception: $errorMessage"
         return @{
             ExitCode = -1
             Output = ""
@@ -126,8 +126,110 @@ function Convert-VBoxDiskImage {
         [string]$Format
     )
 
-    $arguments = "clonehd `"$Source`" `"$Destination`" --format $Format"
-    return Invoke-VBoxCommand $arguments
+    # Check if destination file exists
+    $destinationExists = Test-Path $Destination
+
+    if ($destinationExists) {
+        # Try to find and unregister the existing disk from VirtualBox
+        $allDisksResult = Invoke-VBoxCommand "list hdds"
+        if ($allDisksResult.ExitCode -eq 0) {
+            # Look for our destination file in the list of registered disks
+            $lines = $allDisksResult.Output -split "`n"
+            $currentDisk = @{}
+            $targetDiskUUID = $null
+
+            foreach ($line in $lines) {
+                if ($line -match "^UUID:") {
+                    if ($currentDisk.Path -and $currentDisk.Path -eq $Destination) {
+                        $targetDiskUUID = $currentDisk.UUID
+                        break
+                    }
+                    $currentDisk = @{}
+                    $currentDisk.UUID = ($line -split ":")[1].Trim()
+                } elseif ($line -match "^Location:") {
+                    $currentDisk.Path = ($line -split ":")[1].Trim()
+                }
+            }
+
+            # Check if the last disk in the list matches our destination
+            if (-not $targetDiskUUID -and $currentDisk.Path -and $currentDisk.Path -eq $Destination) {
+                $targetDiskUUID = $currentDisk.UUID
+            }
+
+            # If we found the UUID, unregister the disk from VirtualBox
+            if ($targetDiskUUID) {
+                $unregisterResult = Invoke-VBoxCommand "closemedium disk `"$targetDiskUUID`" --delete"
+            }
+        }
+
+        # Remove the file anyway
+        try {
+            Remove-Item -Path $Destination -Force
+        } catch {
+            return @{
+                ExitCode = 1
+                Output = ""
+                Error = "Could not remove existing file: $($_.Exception.Message)"
+            }
+        }
+    }
+
+    # Use a temporary file name to avoid UUID conflicts
+    $tempDestination = $Destination
+    if ($destinationExists) {
+        $destDir = Split-Path $Destination -Parent
+        $destName = [System.IO.Path]::GetFileNameWithoutExtension($Destination)
+        $destExt = [System.IO.Path]::GetExtension($Destination)
+        $tempDestination = Join-Path $destDir "$destName-temp$destExt"
+    }
+
+    # Perform the clone operation to the temporary file
+    $arguments = "clonemedium `"$Source`" `"$tempDestination`" --format $Format"
+    $result = Invoke-VBoxCommand $arguments
+
+    # If we used a temporary file, move it to the final destination
+    if ($result.ExitCode -eq 0 -and $destinationExists) {
+        # Unregister the temporary disk if it got registered
+        $tempDisksResult = Invoke-VBoxCommand "list hdds"
+        if ($tempDisksResult.ExitCode -eq 0) {
+            $lines = $tempDisksResult.Output -split "`n"
+            $currentDisk = @{}
+            $tempDiskUUID = $null
+
+            foreach ($line in $lines) {
+                if ($line -match "^UUID:") {
+                    if ($currentDisk.Path -and $currentDisk.Path -eq $tempDestination) {
+                        $tempDiskUUID = $currentDisk.UUID
+                        break
+                    }
+                    $currentDisk = @{}
+                    $currentDisk.UUID = ($line -split ":")[1].Trim()
+                } elseif ($line -match "^Location:") {
+                    $currentDisk.Path = ($line -split ":")[1].Trim()
+                }
+            }
+
+            # Check if the last disk in the list matches our temp destination
+            if (-not $tempDiskUUID -and $currentDisk.Path -and $currentDisk.Path -eq $tempDestination) {
+                $tempDiskUUID = $currentDisk.UUID
+            }
+
+            # If we found the temp disk UUID, unregister it
+            if ($tempDiskUUID) {
+                Invoke-VBoxCommand "closemedium disk `"$tempDiskUUID`" --delete" | Out-Null
+            }
+        }
+
+        # Remove the original destination if it exists (shouldn't anymore, but just in case)
+        if (Test-Path $Destination) {
+            Remove-Item -Path $Destination -Force
+        }
+
+        # Move the temp file to the final destination
+        Move-Item -Path $tempDestination -Force -Destination $Destination
+    }
+
+    return $result
 }
 
 function Resize-VBoxDiskImage {
@@ -148,10 +250,27 @@ function New-VBoxDiskImage {
         [int]$SizeMB
     )
 
-    $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
+    # Check if destination file exists
+    if (Test-Path $Path) {
+        if ($PSCmdlet.ShouldProcess("Existing disk image at $Path", "Overwrite")) {
+            # Remove the existing file first
+            Remove-Item -Path $Path -Force
+            $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
+            return Invoke-VBoxCommand $arguments
+        } else {
+            # Return an error indicating the file exists
+            return @{
+                ExitCode = 1
+                Output = ""
+                Error = "File already exists: $Path"
+            }
+        }
+    } else {
+        $arguments = "createhd --filename `"$Path`" --format $Format --size $SizeMB"
 
-    if ($PSCmdlet.ShouldProcess("Disk image at $Path", "Create")) {
-        return Invoke-VBoxCommand $arguments
+        if ($PSCmdlet.ShouldProcess("Disk image at $Path", "Create")) {
+            return Invoke-VBoxCommand $arguments
+        }
     }
 }
 

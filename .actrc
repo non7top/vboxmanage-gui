@@ -1,0 +1,11 @@
+# .actrc - Configuration file for act (local GitHub Actions runner)
+# This file configures act to run workflows sequentially instead of in parallel
+
+# Run workflows sequentially (set parallel execution to 1)
+--concurrent-jobs 1
+--rm
+
+# Other useful configurations:
+# --container-architecture linux/amd64  # Force specific architecture
+# --verbose                           # Enable verbose output
+# --dryrun                            # Dry run without executing
