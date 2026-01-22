@@ -55,12 +55,12 @@ function Invoke-VBoxCommand {
         $process.WaitForExit()
 
         # Log the command and results for debugging
-        Write-Host "VBoxManage Command: $vboxManagePath $Arguments" -ForegroundColor Gray
+        Write-Verbose "VBoxManage Command: $vboxManagePath $Arguments"
         if ($errorOutput) {
-            Write-Host "VBoxManage Error: $errorOutput" -ForegroundColor Red
+            Write-Verbose "VBoxManage Error: $errorOutput"
         }
         if ($output -and $process.ExitCode -eq 0) {
-            Write-Host "VBoxManage Output: $output" -ForegroundColor Green
+            Write-Verbose "VBoxManage Output: $output"
         }
 
         return @{
@@ -70,7 +70,7 @@ function Invoke-VBoxCommand {
         }
     } catch {
         $errorMessage = $_.Exception.Message
-        Write-Host "VBoxManage Exception: $errorMessage" -ForegroundColor Red
+        Write-Verbose "VBoxManage Exception: $errorMessage"
         return @{
             ExitCode = -1
             Output = ""

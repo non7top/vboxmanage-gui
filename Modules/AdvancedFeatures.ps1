@@ -113,7 +113,7 @@ function Initialize-AdvancedTab {
 
     # Event handlers for encryption
     $Script:encPathButton.Add_Click({
-        param($sender, $eventArgs)
+        param($scriptSender, $scriptEventArgs)
 
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
@@ -123,7 +123,7 @@ function Initialize-AdvancedTab {
     })
 
     $Script:encryptButton.Add_Click({
-        param($sender, $eventArgs)
+        param($scriptSender, $scriptEventArgs)
 
         if ([string]::IsNullOrEmpty($Script:encPathTextBox.Text) -or [string]::IsNullOrEmpty($Script:encPasswordTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path and password.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
@@ -152,7 +152,7 @@ function Initialize-AdvancedTab {
 
     # Event handlers for disk info
     $Script:infoPathButton.Add_Click({
-        param($sender, $eventArgs)
+        param($scriptSender, $scriptEventArgs)
 
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Filter = "Disk Images|*.vdi;*.vmdk;*.vhd;*.img;*.raw|All Files (*.*)|*.*"
@@ -162,7 +162,7 @@ function Initialize-AdvancedTab {
     })
 
     $Script:getInfoButton.Add_Click({
-        param($sender, $eventArgs)
+        param($scriptSender, $scriptEventArgs)
 
         if ([string]::IsNullOrEmpty($Script:infoPathTextBox.Text)) {
             [System.Windows.Forms.MessageBox]::Show("Please specify image path.", "Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
